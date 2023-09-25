@@ -5,7 +5,7 @@ const authRoutes = Router();
 const { authController } = controllers;
 
 authRoutes.post('/register', authController.register)
-// authRoutes.post('/login', authController.login)
+authRoutes.post('/login', authController.login)
 
 
 export default authRoutes;
