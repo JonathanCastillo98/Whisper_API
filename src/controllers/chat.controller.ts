@@ -1,17 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import { createError } from "../utils/error.util";
-const Chat = require("../models/chat.model");
-const User = require("../models/user.model");
-const fs = require("fs");
-const Message = require("../models/message.model");
+import Chat from "../models/chat.model";
+import User from "../models/user.model";
+import fs from "fs";
+import Message from "../models/message.model";
 
 const chatController = {
     accessChat: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId, senderId, email } = req.body;
+            const { userId } = req.params;
+            const { senderId, email } = req.body;
 
             if (!userId) return next(createError(400, "Missing userId"));
-            if (!senderId) return next(createError(400, "IMissing senderId"));;
+            if (!senderId) return next(createError(400, "Missing senderId"));;
 
             let isChat = await Chat.find({
                 $and: [{ isGroupChat: false }, { users: senderId }, { users: userId }],
@@ -21,7 +22,7 @@ const chatController = {
 
             isChat = await User.populate(isChat, {
                 path: "latestMessage.sender",
-                select: "email picture website",
+                select: "username email profilePhoto",
             });
 
             if (isChat.length > 0) {
@@ -49,8 +50,8 @@ const chatController = {
     },
     fetchChats: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId } = req.body;
-            Chat.find({ users: { $elemMatch: { $eq: userId } } })
+            const { userId } = req.params;
+            await Chat.find({ users: { $elemMatch: { $eq: userId } } })
                 .populate("users")
                 .populate("groupAdmin")
                 .populate("latestMessage")
@@ -58,7 +59,7 @@ const chatController = {
                 .then(async (result) => {
                     result = await User.populate(result, {
                         path: "latestMessage.sender",
-                        select: "email picture website",
+                        select: "username email profilePhoto",
                     });
 
                     res.status(200).send(result);
@@ -68,57 +69,57 @@ const chatController = {
         }
     },
     getChat: async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { chatId } = req.params;
+        // try {
+        //     const { chatId } = req.params;
 
-            if (!chatId) return next(createError(400, "Missing chatId"));
+        //     if (!chatId) return next(createError(400, "Missing chatId"));
 
-            let chat = await Chat.find({
-                _id: chatId,
-            })
-                .populate("users")
-                .populate("latestMessage");
+        //     let chat = await Chat.find({
+        //         _id: chatId,
+        //     })
+        //         .populate("users")
+        //         .populate("latestMessage");
 
-            if (!chat) return next(createError(404, "Chat not found"));
+        //     if (!chat) return next(createError(404, "Chat not found"));
 
-            return res.status(200).send(chat);
-        } catch (error) {
-            next(error)
-        }
+        //     return res.status(200).send(chat);
+        // } catch (error) {
+        //     next(error)
+        // }
     },
     updateUnreadCnt: async (req: Request, res: Response, next: NextFunction) => {
-        const { chatId } = req.params;
-        const { newUnreadCnt } = req.body;
+        // const { chatId } = req.params;
+        // const { newUnreadCnt } = req.body;
 
-        if (!chatId) return next(createError(400, "Missing chatId"));
+        // if (!chatId) return next(createError(400, "Missing chatId"));
 
-        try {
-            let updatedChat;
+        // try {
+        //     let updatedChat;
 
-            if (newUnreadCnt !== undefined) {
-                updatedChat = await Chat.findByIdAndUpdate(
-                    chatId,
-                    { unreadCnt: newUnreadCnt },
-                    { new: true }
-                ).exec();
-            } else {
-                updatedChat = await Chat.findByIdAndUpdate(
-                    chatId,
-                    { $inc: { unreadCnt: 1 } },
-                    { new: true }
-                ).exec();
-            }
+        //     if (newUnreadCnt !== undefined) {
+        //         updatedChat = await Chat.findByIdAndUpdate(
+        //             chatId,
+        //             { unreadCnt: newUnreadCnt },
+        //             { new: true }
+        //         ).exec();
+        //     } else {
+        //         updatedChat = await Chat.findByIdAndUpdate(
+        //             chatId,
+        //             { $inc: { unreadCnt: 1 } },
+        //             { new: true }
+        //         ).exec();
+        //     }
 
-            if (!updatedChat) {
-                return next(createError(404, "Chat not found"));
-            }
+        //     if (!updatedChat) {
+        //         return next(createError(404, "Chat not found"));
+        //     }
 
-            return res
-                .status(200)
-                .send({ success: "Unread Cnt updated successfully!" });
-        } catch (error) {
-            next(error)
-        }
+        //     return res
+        //         .status(200)
+        //         .send({ success: "Unread Cnt updated successfully!" });
+        // } catch (error) {
+        //     next(error)
+        // }
     }
 }
 export default chatController;

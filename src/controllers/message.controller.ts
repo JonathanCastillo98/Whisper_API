@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../utils/error.util";
 import Message from "../models/message.model";
+import User from "../models/user.model"
 import Chat from "../models/chat.model";
 
 
@@ -26,7 +27,7 @@ const messageController = {
             message = await message.populate("chat");
             message = await User.populate(message, {
                 path: "chat.users",
-                select: "email picture",
+                select: "username email profilePhoto",
             });
 
             await Chat.findByIdAndUpdate(chatId, {
@@ -36,14 +37,13 @@ const messageController = {
             return res.status(200).send(message);
         } catch (error) {
             next(error);
-            ;
         }
     },
     allMessages: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { chatId } = req.params;
             const messages = await Message.find({ chat: chatId })
-                .populate("sender", "email picture")
+                .populate("sender", "username email profilePhoto")
                 .populate("chat");
 
             return res.status(200).json(messages);

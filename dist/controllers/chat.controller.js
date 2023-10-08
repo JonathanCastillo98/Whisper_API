@@ -8,29 +8,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const error_util_1 = require("../utils/error.util");
-const Chat = require("../models/chat.model");
-const User = require("../models/user.model");
-const fs = require("fs");
-const Message = require("../models/message.model");
+const chat_model_1 = __importDefault(require("../models/chat.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const chatController = {
     accessChat: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { userId, senderId, email } = req.body;
+            const { userId } = req.params;
+            const { senderId, email } = req.body;
             if (!userId)
                 return next((0, error_util_1.createError)(400, "Missing userId"));
             if (!senderId)
-                return next((0, error_util_1.createError)(400, "IMissing senderId"));
+                return next((0, error_util_1.createError)(400, "Missing senderId"));
             ;
-            let isChat = yield Chat.find({
+            let isChat = yield chat_model_1.default.find({
                 $and: [{ isGroupChat: false }, { users: senderId }, { users: userId }],
             })
                 .populate("users")
                 .populate("latestMessage");
-            isChat = yield User.populate(isChat, {
+            isChat = yield user_model_1.default.populate(isChat, {
                 path: "latestMessage.sender",
-                select: "email picture website",
+                select: "username email profilePhoto",
             });
             if (isChat.length > 0) {
                 res.send(isChat[0]);
@@ -42,8 +44,8 @@ const chatController = {
                     users: [senderId, userId],
                 };
                 try {
-                    const createdChat = yield Chat.create(chatData);
-                    const fullChat = yield Chat.findOne({ _id: createdChat._id }).populate("users");
+                    const createdChat = yield chat_model_1.default.create(chatData);
+                    const fullChat = yield chat_model_1.default.findOne({ _id: createdChat._id }).populate("users");
                     res.status(200).send(fullChat);
                 }
                 catch (error) {
@@ -57,16 +59,16 @@ const chatController = {
     }),
     fetchChats: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { userId } = req.body;
-            Chat.find({ users: { $elemMatch: { $eq: userId } } })
+            const { userId } = req.params;
+            yield chat_model_1.default.find({ users: { $elemMatch: { $eq: userId } } })
                 .populate("users")
                 .populate("groupAdmin")
                 .populate("latestMessage")
                 .sort({ updatedAt: -1 })
                 .then((result) => __awaiter(void 0, void 0, void 0, function* () {
-                result = yield User.populate(result, {
+                result = yield user_model_1.default.populate(result, {
                     path: "latestMessage.sender",
-                    select: "email picture website",
+                    select: "username email profilePhoto",
                 });
                 res.status(200).send(result);
             }));
@@ -76,46 +78,48 @@ const chatController = {
         }
     }),
     getChat: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            const { chatId } = req.params;
-            if (!chatId)
-                return next((0, error_util_1.createError)(400, "Missing chatId"));
-            let chat = yield Chat.find({
-                _id: chatId,
-            })
-                .populate("users")
-                .populate("latestMessage");
-            if (!chat)
-                return next((0, error_util_1.createError)(404, "Chat not found"));
-            return res.status(200).send(chat);
-        }
-        catch (error) {
-            next(error);
-        }
+        // try {
+        //     const { chatId } = req.params;
+        //     if (!chatId) return next(createError(400, "Missing chatId"));
+        //     let chat = await Chat.find({
+        //         _id: chatId,
+        //     })
+        //         .populate("users")
+        //         .populate("latestMessage");
+        //     if (!chat) return next(createError(404, "Chat not found"));
+        //     return res.status(200).send(chat);
+        // } catch (error) {
+        //     next(error)
+        // }
     }),
     updateUnreadCnt: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const { chatId } = req.params;
-        const { newUnreadCnt } = req.body;
-        if (!chatId)
-            return next((0, error_util_1.createError)(400, "Missing chatId"));
-        try {
-            let updatedChat;
-            if (newUnreadCnt !== undefined) {
-                updatedChat = yield Chat.findByIdAndUpdate(chatId, { unreadCnt: newUnreadCnt }, { new: true }).exec();
-            }
-            else {
-                updatedChat = yield Chat.findByIdAndUpdate(chatId, { $inc: { unreadCnt: 1 } }, { new: true }).exec();
-            }
-            if (!updatedChat) {
-                return next((0, error_util_1.createError)(404, "Chat not found"));
-            }
-            return res
-                .status(200)
-                .send({ success: "Unread Cnt updated successfully!" });
-        }
-        catch (error) {
-            next(error);
-        }
+        // const { chatId } = req.params;
+        // const { newUnreadCnt } = req.body;
+        // if (!chatId) return next(createError(400, "Missing chatId"));
+        // try {
+        //     let updatedChat;
+        //     if (newUnreadCnt !== undefined) {
+        //         updatedChat = await Chat.findByIdAndUpdate(
+        //             chatId,
+        //             { unreadCnt: newUnreadCnt },
+        //             { new: true }
+        //         ).exec();
+        //     } else {
+        //         updatedChat = await Chat.findByIdAndUpdate(
+        //             chatId,
+        //             { $inc: { unreadCnt: 1 } },
+        //             { new: true }
+        //         ).exec();
+        //     }
+        //     if (!updatedChat) {
+        //         return next(createError(404, "Chat not found"));
+        //     }
+        //     return res
+        //         .status(200)
+        //         .send({ success: "Unread Cnt updated successfully!" });
+        // } catch (error) {
+        //     next(error)
+        // }
     })
 };
 exports.default = chatController;

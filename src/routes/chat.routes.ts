@@ -5,9 +5,9 @@ const chatRoutes = Router();
 
 const { chatController } = controllers;
 
-chatRoutes.post("/chat", chatController.accessChat);
-chatRoutes.post("/getChats", chatController.fetchChats);
-chatRoutes.get("/getchat/:chatId", chatController.getChat);
+chatRoutes.post("/:userId", chatController.accessChat);
+chatRoutes.get("/:userId", chatController.fetchChats);
+chatRoutes.get("/getChat/:chatId", chatController.getChat);
 chatRoutes.put("/updateUnread/:chatId", chatController.updateUnreadCnt);
 
 

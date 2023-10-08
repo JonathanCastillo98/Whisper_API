@@ -29,17 +29,15 @@ const authController = {
                 return next((0, error_util_1.createError)(400, "Username already exists!"));
             if (existingEmail)
                 return next((0, error_util_1.createError)(400, "Email already exists!"));
-            const saltRounds = 10; // Número de rondas de sal para bcrypt
-            // Genera un hash de contraseña utilizando bcrypt
+            const saltRounds = 10;
             const hashedPassword = yield bcryptjs_1.default.hash(password, saltRounds);
-            // Crea un nuevo usuario en MongoDB utilizando el modelo de usuario
             const newUser = new user_model_1.default({
                 username: username,
                 email: email,
                 password: hashedPassword,
             });
-            yield newUser.save(); // Guarda el usuario en la base de datos
-            const token = jsonwebtoken_1.default.sign({ username, email }, JWT_SECRET);
+            yield newUser.save();
+            const token = jsonwebtoken_1.default.sign({ _id: newUser._id, username, email }, JWT_SECRET);
             res.status(200).send(token);
         }
         catch (error) {

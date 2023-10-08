@@ -1,9 +1,11 @@
 import { Schema, Document, model, Types } from 'mongoose';
 
-interface IUser extends Document {
+export interface IUser extends Document {
     username: string;
     email: string;
     profilePhoto: string;
+    status: string;
+    contacts: Array<IUser['_id']> | Array<IUser> | null;
     password: string;
     createdAt: Date;
 }
@@ -26,6 +28,16 @@ const userSchema = new Schema<IUser>(
             type: String,
             default: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
         },
+        status: {
+            type: String,
+            default: "Hey buddy, Whisper is amazing!"
+        },
+        contacts: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+            }
+        ],
         createdAt: {
             type: Date,
             default: Date.now,

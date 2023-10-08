@@ -5,7 +5,7 @@ const messageRoutes = Router();
 
 const { messageController } = controllers;
 
-messageRoutes.post("/message", messageController.sendMessage);
-messageRoutes.get("/message/:chatId", messageController.allMessages);
+messageRoutes.post("/", messageController.sendMessage);
+messageRoutes.get("/:chatId", messageController.allMessages);
 
 export default messageRoutes;

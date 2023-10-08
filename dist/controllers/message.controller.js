@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const error_util_1 = require("../utils/error.util");
 const message_model_1 = __importDefault(require("../models/message.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const chat_model_1 = __importDefault(require("../models/chat.model"));
 const messageController = {
     sendMessage: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -33,9 +34,9 @@ const messageController = {
             let message = yield message_model_1.default.create(newMessage);
             message = yield message.populate("sender", "email picture");
             message = yield message.populate("chat");
-            message = yield User.populate(message, {
+            message = yield user_model_1.default.populate(message, {
                 path: "chat.users",
-                select: "email picture",
+                select: "username email profilePhoto",
             });
             yield chat_model_1.default.findByIdAndUpdate(chatId, {
                 latestMessage: message,
@@ -44,14 +45,13 @@ const messageController = {
         }
         catch (error) {
             next(error);
-            ;
         }
     }),
     allMessages: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const { chatId } = req.params;
             const messages = yield message_model_1.default.find({ chat: chatId })
-                .populate("sender", "email picture")
+                .populate("sender", "username email profilePhoto")
                 .populate("chat");
             return res.status(200).json(messages);
         }
