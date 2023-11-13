@@ -14,10 +14,6 @@ const messageSchema = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Chat',
     },
-    direction: {
-        type: String,
-        required: true,
-    },
     createdAt: {
         type: Date,
         default: Date.now,

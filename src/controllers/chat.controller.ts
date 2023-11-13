@@ -2,20 +2,18 @@ import { NextFunction, Request, Response } from "express";
 import { createError } from "../utils/error.util";
 import Chat from "../models/chat.model";
 import User from "../models/user.model";
-import fs from "fs";
-import Message from "../models/message.model";
 
 const chatController = {
     accessChat: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId } = req.params;
+            const { _id } = res.locals.user.existingUser;
             const { senderId, email } = req.body;
 
-            if (!userId) return next(createError(400, "Missing userId"));
+            if (!_id) return next(createError(400, "Missing userId"));
             if (!senderId) return next(createError(400, "Missing senderId"));;
 
             let isChat = await Chat.find({
-                $and: [{ isGroupChat: false }, { users: senderId }, { users: userId }],
+                $and: [{ isGroupChat: false }, { users: senderId }, { users: _id }],
             })
                 .populate("users")
                 .populate("latestMessage");
@@ -31,7 +29,7 @@ const chatController = {
                 const chatData = {
                     chatName: email,
                     isGroupChat: false,
-                    users: [senderId, userId],
+                    users: [senderId, _id],
                 };
 
                 try {
@@ -50,8 +48,8 @@ const chatController = {
     },
     fetchChats: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId } = req.params;
-            await Chat.find({ users: { $elemMatch: { $eq: userId } } })
+            const { _id } = res.locals.user.existingUser;
+            await Chat.find({ users: { $elemMatch: { $eq: _id } } })
                 .populate("users")
                 .populate("groupAdmin")
                 .populate("latestMessage")

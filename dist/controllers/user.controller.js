@@ -17,10 +17,10 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const userController = {
     addContact: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b;
-        const { userId } = req.params;
+        const { _id } = res.locals.user.existingUser;
         const { contactId } = req.body;
         try {
-            const user = yield user_model_1.default.findById(userId).exec();
+            const user = yield user_model_1.default.findById(_id).exec();
             ;
             if (!user)
                 return next((0, error_util_1.createError)(404, "User doesn't exist!"));
@@ -34,30 +34,29 @@ const userController = {
                 return res.status(200).send("Contact added to your list!");
             }
             else
-                return next((0, error_util_1.createError)(400, "Contact already exists!"));
+                return next((0, error_util_1.createError)(400, "Contact alredy exists!"));
         }
         catch (error) {
             next(error);
         }
     }),
-    getNonAddedContacts: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const { userId } = req.params;
+    getNonAddedContacts: (_req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        const { _id } = res.locals.user.existingUser;
         try {
-            const user = yield user_model_1.default.findById(userId).exec();
+            const user = yield user_model_1.default.findById(_id).exec();
             if (!user)
                 return next((0, error_util_1.createError)(404, "User doesn't exist!"));
-            // Obtén todos los usuarios que no están en la lista de contactos del usuario
-            const nonContactUsers = yield user_model_1.default.find({ _id: { $ne: userId, $nin: user.contacts } });
+            const nonContactUsers = yield user_model_1.default.find({ _id: { $ne: _id, $nin: user.contacts } });
             return res.status(200).send(nonContactUsers);
         }
         catch (error) {
             next(error);
         }
     }),
-    getAddedContacts: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const { userId } = req.params;
+    getAddedContacts: (_req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        const { _id } = res.locals.user.existingUser;
         try {
-            const user = yield user_model_1.default.findById(userId).exec();
+            const user = yield user_model_1.default.findById(_id).exec();
             if (!user)
                 return next((0, error_util_1.createError)(404, "User doesn't exist!"));
             yield user.populate('contacts', 'username email profilePhoto status');
@@ -66,6 +65,6 @@ const userController = {
         catch (error) {
             next(error);
         }
-    })
+    }),
 };
 exports.default = userController;

@@ -23,11 +23,11 @@ const authController = {
     register: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const { username, email, password } = req.body;
-            const existingUsername = yield user_model_1.default.findOne({ username: username });
-            const existingEmail = yield user_model_1.default.findOne({ email: email });
-            if (existingUsername)
+            const usernameExists = yield user_model_1.default.findOne({ username: username });
+            const emailExists = yield user_model_1.default.findOne({ email: email });
+            if (usernameExists)
                 return next((0, error_util_1.createError)(400, "Username already exists!"));
-            if (existingEmail)
+            if (emailExists)
                 return next((0, error_util_1.createError)(400, "Email already exists!"));
             const saltRounds = 10;
             const hashedPassword = yield bcryptjs_1.default.hash(password, saltRounds);
@@ -46,15 +46,23 @@ const authController = {
     }),
     login: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { user } = req.body;
+            const { user, password } = req.body;
             const existingUser = yield user_model_1.default.findOne({ $or: [{ username: user }, { email: user }] });
             if (!existingUser)
                 return next((0, error_util_1.createError)(404, "User not found."));
-            const isPasswordCorrect = yield bcryptjs_1.default.compare(req.body.password, existingUser.password);
+            const isPasswordCorrect = yield bcryptjs_1.default.compare(password, existingUser.password);
             if (!isPasswordCorrect)
-                return next((0, error_util_1.createError)(400, "Wrong password or username!"));
-            const token = jsonwebtoken_1.default.sign({ existingUser }, JWT_SECRET);
-            res.status(200).send(token);
+                return next((0, error_util_1.createError)(400, "Wrong password!"));
+            const accessToken = jsonwebtoken_1.default.sign(Object.assign({}, existingUser), JWT_SECRET);
+            res.status(200).json({
+                username: existingUser.username,
+                email: existingUser.email,
+                profilePhoto: existingUser.profilePhoto,
+                status: existingUser.status,
+                contacts: existingUser.contacts,
+                creationDate: existingUser.createdAt,
+                accessToken,
+            });
         }
         catch (error) {
             next(error);

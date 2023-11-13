@@ -7,23 +7,23 @@ import Chat from "../models/chat.model";
 
 const messageController = {
     sendMessage: async (req: Request, res: Response, next: NextFunction) => {
-        const { content, chatId, senderId, direction } = req.body;
+        const { _id } = res.locals.user.existingUser;
+        const { content, chatId } = req.body;
 
-        if (!content || !chatId || !direction)
+        if (!content || !chatId)
             return next(createError(400, "Invalid data passed into request"));
-        if (!senderId) return next(createError(400, "No senderId passed"));
+        if (!_id) return next(createError(400, "No senderId passed"));
         ;
 
         const newMessage = {
-            sender: senderId,
+            sender: _id,
             content: content,
             chat: chatId,
-            direction: direction,
         };
 
         try {
             let message = await Message.create(newMessage);
-            message = await message.populate("sender", "email picture");
+            message = await message.populate("sender", "username email profilePhoto");
             message = await message.populate("chat");
             message = await User.populate(message, {
                 path: "chat.users",
@@ -44,7 +44,14 @@ const messageController = {
             const { chatId } = req.params;
             const messages = await Message.find({ chat: chatId })
                 .populate("sender", "username email profilePhoto")
-                .populate("chat");
+                .populate("chat")
+                .populate({
+                    path: "chat",
+                    populate: {
+                        path: "users",
+                        select: "username email profilePhoto",
+                    },
+                })
 
             return res.status(200).json(messages);
         } catch (error) {

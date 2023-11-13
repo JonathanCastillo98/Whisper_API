@@ -18,15 +18,15 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const chatController = {
     accessChat: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { userId } = req.params;
+            const { _id } = res.locals.user.existingUser;
             const { senderId, email } = req.body;
-            if (!userId)
+            if (!_id)
                 return next((0, error_util_1.createError)(400, "Missing userId"));
             if (!senderId)
                 return next((0, error_util_1.createError)(400, "Missing senderId"));
             ;
             let isChat = yield chat_model_1.default.find({
-                $and: [{ isGroupChat: false }, { users: senderId }, { users: userId }],
+                $and: [{ isGroupChat: false }, { users: senderId }, { users: _id }],
             })
                 .populate("users")
                 .populate("latestMessage");
@@ -41,7 +41,7 @@ const chatController = {
                 const chatData = {
                     chatName: email,
                     isGroupChat: false,
-                    users: [senderId, userId],
+                    users: [senderId, _id],
                 };
                 try {
                     const createdChat = yield chat_model_1.default.create(chatData);
@@ -59,8 +59,8 @@ const chatController = {
     }),
     fetchChats: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { userId } = req.params;
-            yield chat_model_1.default.find({ users: { $elemMatch: { $eq: userId } } })
+            const { _id } = res.locals.user.existingUser;
+            yield chat_model_1.default.find({ users: { $elemMatch: { $eq: _id } } })
                 .populate("users")
                 .populate("groupAdmin")
                 .populate("latestMessage")

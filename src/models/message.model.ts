@@ -4,7 +4,6 @@ interface IMessage extends Document {
     sender: Types.ObjectId;
     content: string;
     chat: Types.ObjectId;
-    direction: string;
     createdAt: Date;
 }
 
@@ -21,10 +20,6 @@ const messageSchema = new Schema<IMessage>(
         chat: {
             type: Schema.Types.ObjectId,
             ref: 'Chat',
-        },
-        direction: {
-            type: String,
-            required: true,
         },
         createdAt: {
             type: Date,

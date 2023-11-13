@@ -18,21 +18,21 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const chat_model_1 = __importDefault(require("../models/chat.model"));
 const messageController = {
     sendMessage: (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const { content, chatId, senderId, direction } = req.body;
-        if (!content || !chatId || !direction)
+        const { _id } = res.locals.user.existingUser;
+        const { content, chatId } = req.body;
+        if (!content || !chatId)
             return next((0, error_util_1.createError)(400, "Invalid data passed into request"));
-        if (!senderId)
+        if (!_id)
             return next((0, error_util_1.createError)(400, "No senderId passed"));
         ;
         const newMessage = {
-            sender: senderId,
+            sender: _id,
             content: content,
             chat: chatId,
-            direction: direction,
         };
         try {
             let message = yield message_model_1.default.create(newMessage);
-            message = yield message.populate("sender", "email picture");
+            message = yield message.populate("sender", "username email profilePhoto");
             message = yield message.populate("chat");
             message = yield user_model_1.default.populate(message, {
                 path: "chat.users",
@@ -52,7 +52,14 @@ const messageController = {
             const { chatId } = req.params;
             const messages = yield message_model_1.default.find({ chat: chatId })
                 .populate("sender", "username email profilePhoto")
-                .populate("chat");
+                .populate("chat")
+                .populate({
+                path: "chat",
+                populate: {
+                    path: "users",
+                    select: "username email profilePhoto",
+                },
+            });
             return res.status(200).json(messages);
         }
         catch (error) {

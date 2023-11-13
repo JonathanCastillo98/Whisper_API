@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const controllers_1 = __importDefault(require("../controllers"));
+const isAuthenticated_1 = require("../middlewares/isAuthenticated");
 const userRoutes = (0, express_1.Router)();
 const { userController } = controllers_1.default;
-userRoutes.post("/:userId/add-contact", userController.addContact);
-userRoutes.get("/:userId/get-nonAdded-contacts", userController.getNonAddedContacts);
-userRoutes.get("/:userId/get-added-contacts", userController.getAddedContacts);
+userRoutes.post("/addContact", isAuthenticated_1.isAuthenticated, userController.addContact);
+userRoutes.get("/notAddedContacts", isAuthenticated_1.isAuthenticated, userController.getNonAddedContacts);
+userRoutes.get("/addedContacts", isAuthenticated_1.isAuthenticated, userController.getAddedContacts);
 exports.default = userRoutes;

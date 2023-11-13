@@ -9,3 +9,12 @@ export interface DatabaseConfig {
     dev: Environment,
     test: any;
 }
+
+export type IUser = {
+    username: string,
+    email: string,
+    profilePhoto: string,
+    status: string,
+    contacts: [],
+    createdAt: Date,
+}
